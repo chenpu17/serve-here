@@ -1,4 +1,4 @@
-# serve-here
+# httpserv-here
 
 Serve any local directory over HTTP with a single command.  
 用一条命令把任意本地目录通过 HTTP 暴露出去。
@@ -16,20 +16,20 @@ Serve any local directory over HTTP with a single command.
 ## Installation | 安装
 
 ```sh
-npm install -g serve-here
+npm install -g httpserv-here
 ```
 
 Or run it ad‑hoc without installing globally:  
 或者临时使用：
 
 ```sh
-npx serve-here
+npx httpserv-here
 ```
 
 ## Usage | 使用方式
 
 ```sh
-serve-here [options] [directory]
+httpserv-here [options] [directory]
 ```
 
 - `directory`: Directory to share; defaults to the current working directory.  

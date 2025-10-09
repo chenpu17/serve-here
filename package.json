@@ -1,13 +1,13 @@
 {
-  "name": "serve-here",
+  "name": "httpserv-here",
   "version": "1.0.0",
   "description": "A minimal CLI to serve static files from a directory over HTTP.",
   "bin": {
-    "serve-here": "bin/serve-here.js"
+    "httpserv-here": "bin/httpserv-here.js"
   },
   "type": "commonjs",
   "scripts": {
-    "start": "node bin/serve-here.js"
+    "start": "node bin/httpserv-here.js"
   },
   "keywords": [
     "cli",
@@ -15,18 +15,19 @@
     "static",
     "server",
     "serve",
-    "directory"
+    "directory",
+    "httpserv"
   ],
   "author": "Chen Pu",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chenpu17/serve-here.git"
+    "url": "https://github.com/chenpu17/httpserv-here.git"
   },
   "bugs": {
-    "url": "https://github.com/chenpu17/serve-here/issues"
+    "url": "https://github.com/chenpu17/httpserv-here/issues"
   },
-  "homepage": "https://github.com/chenpu17/serve-here#readme",
+  "homepage": "https://github.com/chenpu17/httpserv-here#readme",
   "files": [
     "bin",
     "src",

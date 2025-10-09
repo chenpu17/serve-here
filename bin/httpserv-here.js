@@ -158,10 +158,10 @@ function formatListeningAddresses(host, port) {
 }
 
 function printHelp() {
-  console.log(`serve-here v${pkg.version}
+  console.log(`httpserv-here v${pkg.version}
 
 Usage:
-  serve-here [options] [directory]
+  httpserv-here [options] [directory]
 
 Options:
   -d, --dir <path>        Directory to serve (defaults to current working directory)
