@@ -1,0 +1,23 @@
+{
+  "name": "serve-here",
+  "version": "1.0.0",
+  "description": "A minimal CLI to serve static files from a directory over HTTP.",
+  "bin": {
+    "serve-here": "bin/serve-here.js"
+  },
+  "type": "commonjs",
+  "scripts": {
+    "start": "node bin/serve-here.js"
+  },
+  "keywords": [
+    "cli",
+    "http",
+    "static",
+    "server"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "mime-types": "^2.1.35"
+  }
+}
