@@ -261,6 +261,11 @@ async function serveDirectoryListing(res, requestPath, directoryPath, headOnly) 
         ${tableRows}
       </tbody>
     </table>
+    <footer>
+      <p>
+        Served by <a href="https://github.com/chenpu17/serve-here" target="_blank" rel="noreferrer">serve-here</a>
+      </p>
+    </footer>
   </body>
 </html>`;
 
