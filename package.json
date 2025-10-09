@@ -13,10 +13,29 @@
     "cli",
     "http",
     "static",
-    "server"
+    "server",
+    "serve",
+    "directory"
   ],
-  "author": "",
+  "author": "Chen Pu",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenpu17/serve-here.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chenpu17/serve-here/issues"
+  },
+  "homepage": "https://github.com/chenpu17/serve-here#readme",
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
   "dependencies": {
     "mime-types": "^2.1.35"
   }
