@@ -263,7 +263,7 @@ async function serveDirectoryListing(res, requestPath, directoryPath, headOnly) 
     </table>
     <footer>
       <p>
-        Served by <a href="https://github.com/chenpu17/httpserv-here" target="_blank" rel="noreferrer">httpserv-here</a>
+        Served by <a href="https://github.com/chenpu17/serve-here" target="_blank" rel="noreferrer">serve-here</a>
       </p>
     </footer>
   </body>
