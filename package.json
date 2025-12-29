@@ -1,6 +1,6 @@
 {
   "name": "@chenpu17/serve-here",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A minimal CLI to serve static files from a directory over HTTP.",
   "bin": {
     "serve-here": "bin/serve-here.js"
