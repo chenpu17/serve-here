@@ -260,8 +260,16 @@ function main() {
     const port = options.port || DEFAULT_PORT;
     const host = options.host || DEFAULT_HOST;
 
+    if (options.daemonChild) {
+      ensureDirectories();
+      process.on('exit', () => removePidFile(port));
+    }
+
     server.on('error', error => {
       console.error('Failed to start server:', error.message);
+      if (options.daemonChild) {
+        removePidFile(port);
+      }
       process.exit(1);
     });
 
@@ -275,7 +283,6 @@ function main() {
 
       // Write PID file when running as daemon child
       if (options.daemonChild) {
-        ensureDirectories();
         writePidFile(port, process.pid, rootDir);
       }
     });

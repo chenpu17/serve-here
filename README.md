@@ -8,6 +8,8 @@ Serve any local directory over HTTP with a single command.
   立即托管当前目录或指定目录。
 - Automatic `index.html` support plus clean directory listings.  
   自动识别 `index.html`，无首页时提供整洁的目录列表。
+- Safe redirects for non-ASCII directory names (e.g. 中文路径).  
+  支持中文等非 ASCII 路径的安全重定向。
 - Directory rows include file size and last modified time.  
   列表项展示文件大小与最近修改时间。
 - Works as a global install or `npx` one-off.  

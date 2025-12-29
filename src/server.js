@@ -30,127 +30,162 @@ function createStaticServer({
     ? resolvedRoot
     : `${resolvedRoot}${path.sep}`;
 
-  const server = http.createServer(async (req, res) => {
+  const server = http.createServer((req, res) => {
     const startTime = Date.now();
 
-    if (!req.url) {
-      sendError(res, 400, 'Bad Request');
-      return;
-    }
-
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      res.setHeader('Allow', 'GET, HEAD');
-      sendError(res, 405, 'Method Not Allowed');
-      logRequest(logger, req, res.statusCode, startTime);
-      return;
-    }
-
-    let decodedPath;
-    try {
-      const url = new URL(req.url, 'http://localhost');
-      decodedPath = decodeURIComponent(url.pathname);
-    } catch (error) {
-      sendError(res, 400, 'Bad Request');
-      logRequest(logger, req, res.statusCode, startTime, error);
-      return;
-    }
-
-    const candidateSegments = decodedPath
-      .split('/')
-      .filter(segment => segment && segment !== '.');
-    const resolvedPath = path.resolve(resolvedRoot, ...candidateSegments);
-
-    if (!resolvedPath.startsWith(rootWithSep) && resolvedPath !== resolvedRoot) {
-      sendError(res, 403, 'Forbidden');
-      logRequest(logger, req, res.statusCode, startTime);
-      return;
-    }
-
-    let stats;
-    try {
-      stats = await stat(resolvedPath);
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        sendError(res, 404, 'Not Found');
-      } else {
-        sendError(res, 500, 'Internal Server Error');
-        logger.error('Error reading path', resolvedPath, error);
+    void (async () => {
+      if (!req.url) {
+        sendError(res, 400, 'Bad Request', req.method === 'HEAD');
+        return;
       }
-      logRequest(logger, req, res.statusCode, startTime, error);
-      return;
-    }
 
-    if (stats.isDirectory()) {
-      if (!decodedPath.endsWith('/')) {
-        // Align with browser expectations for relative asset loading.
-        res.statusCode = 301;
-        res.setHeader('Location', `${decodedPath}/`);
-        res.end();
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        res.setHeader('Allow', 'GET, HEAD');
+        sendError(res, 405, 'Method Not Allowed', false);
         logRequest(logger, req, res.statusCode, startTime);
         return;
       }
 
-      for (const indexFile of indexFiles) {
-        const candidate = path.join(resolvedPath, indexFile);
-        try {
-          const indexStats = await stat(candidate);
-          if (indexStats.isFile()) {
-            await serveFile(res, candidate, indexStats, req.method === 'HEAD');
-            logRequest(logger, req, res.statusCode, startTime);
-            return;
-          }
-        } catch (error) {
-          if (error.code !== 'ENOENT') {
-            logger.error('Error reading index file', candidate, error);
-          }
-        }
-      }
-
-      if (!enableDirectoryListing) {
-        sendError(res, 403, 'Directory listing disabled');
-        logRequest(logger, req, res.statusCode, startTime);
-        return;
-      }
-
+      let decodedPath;
+      let requestPathname;
+      let requestSearch;
       try {
-        await serveDirectoryListing(
-          res,
-          decodedPath,
-          resolvedPath,
-          req.method === 'HEAD'
-        );
-        logRequest(logger, req, res.statusCode, startTime);
-        return;
+        const url = new URL(req.url, 'http://localhost');
+        requestPathname = url.pathname;
+        requestSearch = url.search;
+        decodedPath = decodeURIComponent(requestPathname);
       } catch (error) {
-        sendError(res, 500, 'Internal Server Error');
-        logger.error('Error generating directory listing', resolvedPath, error);
+        sendError(res, 400, 'Bad Request', req.method === 'HEAD');
         logRequest(logger, req, res.statusCode, startTime, error);
         return;
       }
-    }
 
-    if (stats.isFile()) {
-      try {
-        await serveFile(res, resolvedPath, stats, req.method === 'HEAD');
-      } catch (error) {
-        logger.error('Error serving file', resolvedPath, error);
-        // Stream errors may happen after headers were sent.
+      const candidateSegments = decodedPath
+        .split('/')
+        .filter(segment => segment && segment !== '.');
+      const resolvedPath = path.resolve(resolvedRoot, ...candidateSegments);
+
+      if (!resolvedPath.startsWith(rootWithSep) && resolvedPath !== resolvedRoot) {
+        sendError(res, 403, 'Forbidden', req.method === 'HEAD');
+        logRequest(logger, req, res.statusCode, startTime);
+        return;
       }
-      logRequest(logger, req, res.statusCode, startTime);
-      return;
-    }
 
-    sendError(res, 403, 'Forbidden');
-    logRequest(logger, req, res.statusCode, startTime);
+      let stats;
+      try {
+        stats = await stat(resolvedPath);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          sendError(res, 404, 'Not Found', req.method === 'HEAD');
+        } else {
+          sendError(res, 500, 'Internal Server Error', req.method === 'HEAD');
+          logger.error('Error reading path', resolvedPath, error);
+        }
+        logRequest(logger, req, res.statusCode, startTime, error);
+        return;
+      }
+
+      if (stats.isDirectory()) {
+        if (!requestPathname.endsWith('/')) {
+          // Align with browser expectations for relative asset loading.
+          const location = `${requestPathname}/${requestSearch}`;
+          try {
+            // Use the encoded pathname for headers (Node rejects non-ASCII in Location).
+            res.statusCode = 301;
+            res.setHeader('Location', location);
+            res.end();
+            logRequest(logger, req, res.statusCode, startTime);
+            return;
+          } catch (error) {
+            sendError(res, 400, 'Bad Request', req.method === 'HEAD');
+            logRequest(logger, req, res.statusCode, startTime, error);
+            return;
+          }
+        }
+
+        for (const indexFile of indexFiles) {
+          const candidate = path.join(resolvedPath, indexFile);
+          try {
+            const indexStats = await stat(candidate);
+            if (indexStats.isFile()) {
+              await serveFile(res, candidate, indexStats, req.method === 'HEAD');
+              logRequest(logger, req, res.statusCode, startTime);
+              return;
+            }
+          } catch (error) {
+            if (error.code !== 'ENOENT') {
+              logger.error('Error reading index file', candidate, error);
+            }
+          }
+        }
+
+        if (!enableDirectoryListing) {
+          sendError(res, 403, 'Directory listing disabled', req.method === 'HEAD');
+          logRequest(logger, req, res.statusCode, startTime);
+          return;
+        }
+
+        try {
+          await serveDirectoryListing(
+            res,
+            decodedPath,
+            resolvedPath,
+            req.method === 'HEAD'
+          );
+          logRequest(logger, req, res.statusCode, startTime);
+          return;
+        } catch (error) {
+          sendError(res, 500, 'Internal Server Error', req.method === 'HEAD');
+          logger.error('Error generating directory listing', resolvedPath, error);
+          logRequest(logger, req, res.statusCode, startTime, error);
+          return;
+        }
+      }
+
+      if (stats.isFile()) {
+        try {
+          await serveFile(res, resolvedPath, stats, req.method === 'HEAD');
+        } catch (error) {
+          logger.error('Error serving file', resolvedPath, error);
+          // Stream errors may happen after headers were sent.
+        }
+        logRequest(logger, req, res.statusCode, startTime);
+        return;
+      }
+
+      sendError(res, 403, 'Forbidden', req.method === 'HEAD');
+      logRequest(logger, req, res.statusCode, startTime);
+    })().catch(error => {
+      if (!res.headersSent) {
+        sendError(res, 500, 'Internal Server Error', req.method === 'HEAD');
+      } else {
+        res.destroy();
+      }
+      logger.error('Unhandled request error', error);
+      logRequest(logger, req, res.statusCode || 500, startTime, error);
+    });
   });
 
   return server;
 }
 
-function sendError(res, statusCode, message) {
+function sendError(res, statusCode, message, headOnly = false) {
+  if (res.headersSent) {
+    if (!res.writableEnded) {
+      res.end();
+    }
+    return;
+  }
+
   res.statusCode = statusCode;
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
+
+  if (headOnly) {
+    res.end();
+    return;
+  }
+
   res.end(`${statusCode} ${message}`);
 }
 
@@ -173,15 +208,51 @@ async function serveFile(res, filePath, stats, headOnly) {
 function streamFile(res, filePath) {
   return new Promise((resolve, reject) => {
     const stream = fs.createReadStream(filePath);
-    stream.on('error', error => {
+    let settled = false;
+
+    const settle = (fn, arg) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      fn(arg);
+    };
+
+    const onResponseClose = () => {
+      if (!stream.destroyed) {
+        stream.destroy();
+      }
+      settle(resolve);
+    };
+
+    const onResponseError = error => {
+      if (!stream.destroyed) {
+        stream.destroy(error);
+      }
+      settle(reject, error);
+    };
+
+    const onStreamError = error => {
       if (!res.headersSent) {
         sendError(res, 500, 'Internal Server Error');
       } else {
         res.destroy(error);
       }
-      reject(error);
-    });
-    stream.on('end', resolve);
+      settle(reject, error);
+    };
+
+    const onStreamEnd = () => settle(resolve);
+
+    const cleanup = () => {
+      res.removeListener('close', onResponseClose);
+      res.removeListener('error', onResponseError);
+      stream.removeListener('error', onStreamError);
+      stream.removeListener('end', onStreamEnd);
+    };
+
+    res.on('close', onResponseClose);
+    res.on('error', onResponseError);
+    stream.on('error', onStreamError);
+    stream.on('end', onStreamEnd);
     stream.pipe(res);
   });
 }
