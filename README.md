@@ -47,6 +47,31 @@ Or run ad-hoc:
 npx @chenpu17/serve-here
 ```
 
+## Quick Start | 快速开始
+
+![Quick start flow](docs/screenshots/quickstart-flow.svg)
+
+1. Install globally, or skip install and use `npx`.
+   全局安装，或者直接用 `npx` 临时运行。
+2. Start the current directory with `serve-here -p 8080`.
+   用 `serve-here -p 8080` 启动当前目录。
+3. Open `http://127.0.0.1:8080` for the file browser, then visit `http://127.0.0.1:8080/.serve-here/stats` for live metrics.
+   打开 `http://127.0.0.1:8080` 查看目录页，再访问 `http://127.0.0.1:8080/.serve-here/stats` 查看实时统计。
+
+Typical commands:
+常用命令：
+
+```sh
+# Run the current directory
+serve-here
+
+# Run a specific directory on a custom port
+serve-here ./dist -p 9000
+
+# Temporary run without global install
+npx @chenpu17/serve-here ./public
+```
+
 ## Usage | 使用方式
 
 ```sh
@@ -70,6 +95,15 @@ serve-here [options] [directory]
 
 After startup, the terminal prints accessible addresses. If the directory contains no `index.html`, the browser shows the built-in directory UI. Visit `/stats` for the runtime dashboard.
 启动后终端会打印可访问地址。如果目录中没有 `index.html`，浏览器会显示内置目录 UI。访问 `/stats` 可打开运行状态面板。
+
+## First-Time Experience | 首次使用体验
+
+- The browser UI defaults to a compact, readable layout with fast directory navigation.
+  浏览器 UI 默认采用紧凑、清晰的布局，适合快速浏览目录。
+- Theme and language preferences persist across the directory page and stats dashboard.
+  主题和语言偏好会在目录页与统计页之间保持同步。
+- If an `index.html` exists, it is served directly; otherwise the built-in directory browser is shown.
+  如果目录里存在 `index.html`，会直接打开该页面；否则展示内置目录浏览页。
 
 ## Development | 开发
 
