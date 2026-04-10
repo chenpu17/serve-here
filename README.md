@@ -3,9 +3,9 @@
 Serve any local directory over HTTP with a single command.
 用一条命令把任意本地目录通过 HTTP 暴露出去。
 
-> **v2.0.0**: Rust backend, native npm distribution, polished file browser, and built-in live stats dashboard.
+> **v2.0.1**: Rust backend, native npm distribution, polished file browser, and built-in live stats dashboard.
 >
-> **v2.0.0**：Rust 后端、原生 npm 分发、精致目录浏览页，以及内置实时统计面板。
+> **v2.0.1**：Rust 后端、原生 npm 分发、精致目录浏览页，以及内置实时统计面板。
 
 ## Screenshots | 截图
 
@@ -102,8 +102,8 @@ Tag-based release:
 基于标签的发布：
 
 ```sh
-git tag v2.0.0
-git push origin v2.0.0
+git tag v2.0.1
+git push origin v2.0.1
 ```
 
 Current GitHub Actions behavior:
