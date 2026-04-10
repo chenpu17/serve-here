@@ -13,9 +13,13 @@ Serve any local directory over HTTP with a single command.
 
 ![Directory browser screenshot](docs/screenshots/listing-light.png)
 
+![Directory browser dark screenshot](docs/screenshots/listing-dark.png)
+
 ### Stats Dashboard | 统计面板
 
 ![Stats dashboard screenshot](docs/screenshots/stats-light.png)
+
+![Stats dashboard dark screenshot](docs/screenshots/stats-dark.png)
 
 ## Features | 功能特点
 
