@@ -1,13 +1,20 @@
 {
   "name": "@chenpu17/serve-here",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "A minimal CLI to serve static files from a directory over HTTP.",
   "bin": {
     "serve-here": "bin/serve-here.js"
   },
-  "type": "commonjs",
-  "scripts": {
-    "start": "node bin/serve-here.js"
+  "files": [
+    "bin",
+    "LICENSE"
+  ],
+  "optionalDependencies": {
+    "@chenpu17/serve-here-darwin-x64": "2.0.0",
+    "@chenpu17/serve-here-darwin-arm64": "2.0.0",
+    "@chenpu17/serve-here-linux-x64": "2.0.0",
+    "@chenpu17/serve-here-linux-arm64": "2.0.0",
+    "@chenpu17/serve-here-windows-x64": "2.0.0"
   },
   "keywords": [
     "cli",
@@ -26,17 +33,5 @@
   "bugs": {
     "url": "https://github.com/chenpu17/serve-here/issues"
   },
-  "homepage": "https://github.com/chenpu17/serve-here#readme",
-  "files": [
-    "bin",
-    "src",
-    "README.md",
-    "LICENSE"
-  ],
-  "engines": {
-    "node": ">=14"
-  },
-  "dependencies": {
-    "mime-types": "^2.1.35"
-  }
+  "homepage": "https://github.com/chenpu17/serve-here#readme"
 }

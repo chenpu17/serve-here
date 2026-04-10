@@ -1,6 +1,13 @@
+# Rust build artifacts
+src-rust/target/
+
+# Node
 node_modules/
 .npm-cache/
 npm-packages-offline-cache/
+npm/platform-packages/
+
+# Generated
 dist/
 coverage/
 *.log
@@ -8,6 +15,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# OS
 .DS_Store
 *.tgz
-package-lock.json

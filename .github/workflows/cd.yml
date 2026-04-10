@@ -1,0 +1,190 @@
+name: CD - Publish
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  verify-release:
+    name: Verify release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            src-rust/target
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-verify-cargo-${{ hashFiles('src-rust/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-verify-cargo-
+
+      - name: Run tests
+        run: cd src-rust && cargo test --locked
+
+  build-and-publish:
+    name: Build & Publish (${{ matrix.name }})
+    needs: verify-release
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            npm_os: linux
+            npm_cpu: x64
+            cross: false
+          - name: linux-arm64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            npm_os: linux
+            npm_cpu: arm64
+            cross: true
+          - name: darwin-x64
+            os: macos-13
+            target: x86_64-apple-darwin
+            npm_os: darwin
+            npm_cpu: x64
+            cross: false
+          - name: darwin-arm64
+            os: macos-latest
+            target: aarch64-apple-darwin
+            npm_os: darwin
+            npm_cpu: arm64
+            cross: false
+          - name: windows-x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            npm_os: win32
+            npm_cpu: x64
+            cross: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools (ARM64)
+        if: matrix.cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            src-rust/target
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-${{ matrix.target }}-release-cargo-${{ hashFiles('src-rust/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.target }}-release-cargo-
+
+      - name: Build binary
+        run: cd src-rust && cargo build --release --locked --target ${{ matrix.target }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Create and publish npm package
+        shell: bash
+        run: |
+          if [ "${{ matrix.npm_os }}" = "win32" ]; then
+            BINARY_NAME="serve-here.exe"
+          else
+            BINARY_NAME="serve-here"
+          fi
+
+          PKG_NAME="@chenpu17/serve-here-${{ matrix.name }}"
+          PKG_DIR="npm/platform-packages/${{ matrix.name }}"
+          mkdir -p "${PKG_DIR}/bin"
+
+          cp "src-rust/target/${{ matrix.target }}/release/${BINARY_NAME}" "${PKG_DIR}/bin/"
+          cp LICENSE "${PKG_DIR}/"
+
+          # Generate package.json from template using | as sed delimiter
+          sed \
+            -e "s|\${PKG_NAME}|${PKG_NAME}|g" \
+            -e "s|\${VERSION}|${{ env.VERSION }}|g" \
+            -e "s|\${OS}|${{ matrix.npm_os }}|g" \
+            -e "s|\${CPU}|${{ matrix.npm_cpu }}|g" \
+            -e "s|\${PLATFORM}|${{ matrix.name }}|g" \
+            npm/package.json.tmpl > "${PKG_DIR}/package.json"
+
+          cd "${PKG_DIR}"
+          if [ "$(npm view "${PKG_NAME}@${{ env.VERSION }}" version 2>/dev/null || true)" = "${{ env.VERSION }}" ]; then
+            echo "${PKG_NAME}@${{ env.VERSION }} already published, skipping"
+            exit 0
+          fi
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-main-package:
+    name: Publish main npm package
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Update version and publish
+        run: |
+          cd npm/serve-here
+          npm version ${{ env.VERSION }} --no-git-tag-version --allow-same-version
+          # Update optionalDependencies to match the current version
+          node -e "
+            const pkg = require('./package.json');
+            for (const dep in pkg.optionalDependencies) {
+              pkg.optionalDependencies[dep] = '${{ env.VERSION }}';
+            }
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          if [ "$(npm view "@chenpu17/serve-here@${{ env.VERSION }}" version 2>/dev/null || true)" = "${{ env.VERSION }}" ]; then
+            echo "@chenpu17/serve-here@${{ env.VERSION }} already published, skipping"
+            exit 0
+          fi
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  github-release:
+    name: Create GitHub Release
+    needs: publish-main-package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
