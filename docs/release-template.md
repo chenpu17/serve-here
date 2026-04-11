@@ -75,3 +75,4 @@ Released: YYYY-MM-DD
 - If a release only changes docs or pipeline internals, say that directly.
 - The GitHub Release workflow can publish notes from the generated markdown file instead of relying only on GitHub auto-generated notes.
 - The generator now auto-fills highlights from commit subjects, so most releases only need light editing instead of writing notes from scratch.
+- The generator groups included commits by category and compresses low-signal docs/tooling-only releases to keep the notes readable.

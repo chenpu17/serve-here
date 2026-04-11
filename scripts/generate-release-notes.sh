@@ -21,12 +21,38 @@ fi
 
 version_tag="$1"
 previous_tag="${2:-}"
-target_ref="${3:-HEAD}"
+target_ref="${3:-}"
 version="${version_tag#v}"
 release_date="$(date +%F)"
 
+if [ -z "$target_ref" ]; then
+  if git rev-parse -q --verify "refs/tags/${version_tag}" >/dev/null; then
+    target_ref="${version_tag}"
+  else
+    target_ref="HEAD"
+  fi
+fi
+
 if [ -z "$previous_tag" ]; then
-  previous_tag="$(git tag --sort=-version:refname | grep -Fxv "$version_tag" | head -n1 || true)"
+  previous_tag="$(
+    git tag --sort=version:refname | awk -v target="$version_tag" '
+      { tags[++count] = $0 }
+      END {
+        for (i = 1; i <= count; i++) {
+          if (tags[i] == target) {
+            if (i > 1) {
+              print tags[i - 1]
+            }
+            exit
+          }
+        }
+      }
+    '
+  )"
+
+  if [ -z "$previous_tag" ]; then
+    previous_tag="$(git tag --sort=-version:refname | grep -Fxv "$version_tag" | head -n1 || true)"
+  fi
 fi
 
 remote_url="$(git config --get remote.origin.url || true)"
@@ -158,9 +184,17 @@ const buckets = {
   other: [],
 };
 
+const commitBuckets = {
+  user: [],
+  docs: [],
+  tooling: [],
+  other: [],
+};
+
 for (const commit of commits) {
   const bucket = classifyCommit(commit.subject);
   if (bucket === 'meta') continue;
+  commitBuckets[bucket].push(commit);
   buckets[bucket].push(describeCommit(commit.subject));
 }
 
@@ -208,10 +242,50 @@ if (userChanges.length > 0) {
 
 fs.writeFileSync(`${outDir}/highlights.md`, `${highlights.map(item => `- ${item}`).join('\n')}\n`);
 fs.writeFileSync(`${outDir}/changes.md`, `${changes.map(item => `- ${item}`).join('\n')}\n`);
+
+const groupedCommitCounts = [
+  ['user', 'User-facing', commitBuckets.user.length],
+  ['tooling', 'Tooling and CI', commitBuckets.tooling.length],
+  ['docs', 'Documentation', commitBuckets.docs.length],
+  ['other', 'Other', commitBuckets.other.length],
+].filter(([, , count]) => count > 0);
+
+const hasOnlyNonUserCommits =
+  commitBuckets.user.length === 0 &&
+  (commitBuckets.docs.length > 0 || commitBuckets.tooling.length > 0 || commitBuckets.other.length > 0);
+
+let commitsBlock = '';
+
+if (commits.length === 0) {
+  commitsBlock = '- TODO: no commits found in the selected range.\n';
+} else if (hasOnlyNonUserCommits) {
+  commitsBlock = groupedCommitCounts
+    .map(([, label, count]) => `- ${label}: ${count} commit${count === 1 ? '' : 's'}`)
+    .join('\n');
+  commitsBlock += '\n';
+} else {
+  const sections = [
+    ['User-facing', commitBuckets.user],
+    ['Tooling and CI', commitBuckets.tooling],
+    ['Documentation', commitBuckets.docs],
+    ['Other', commitBuckets.other],
+  ].filter(([, items]) => items.length > 0);
+
+  commitsBlock = sections
+    .map(([label, items]) => {
+      const lines = items.map(commit => `- ${commit.hash} ${commit.subject}`).join('\n');
+      return `### ${label}\n\n${lines}`;
+    })
+    .join('\n\n');
+  commitsBlock += '\n';
+}
+
+fs.writeFileSync(`${outDir}/commits.md`, commitsBlock);
 EOF
 
 highlights_block="$(cat "${sections_dir}/highlights.md")"
 changes_block="$(cat "${sections_dir}/changes.md")"
+commits_block="$(cat "${sections_dir}/commits.md")"
 
 cat <<EOF
 # ${version_tag}
@@ -254,5 +328,5 @@ cat <<EOF
 
 ## Included Commits
 
-${commit_lines:-"- TODO: no commits found in the selected range."}
+${commits_block}
 EOF
