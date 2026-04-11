@@ -160,3 +160,13 @@ Current GitHub Actions behavior:
 
 If you need prerelease channels such as `beta` or `next`, add npm dist-tag logic on top of the current semver workflow.
 如果需要 `beta`、`next` 之类的预发布通道，需要在当前语义化版本工作流之上再增加 npm dist-tag 逻辑。
+
+For richer manual release notes, generate a draft locally:
+如果需要更完整的手工版 release notes，可以先在本地生成草稿：
+
+```sh
+./scripts/generate-release-notes.sh v2.0.3 > /tmp/v2.0.3-release-notes.md
+```
+
+The draft format is documented in [docs/release-template.md](docs/release-template.md).
+草稿格式说明见 [docs/release-template.md](docs/release-template.md)。
