@@ -73,3 +73,4 @@ Released: YYYY-MM-DD
 - Keep the Highlights section short. Three bullets is enough.
 - Prefer user-visible language over implementation details.
 - If a release only changes docs or pipeline internals, say that directly.
+- The GitHub Release workflow can publish notes from the generated markdown file instead of relying only on GitHub auto-generated notes.

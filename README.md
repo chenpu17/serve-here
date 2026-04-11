@@ -150,6 +150,8 @@ Current GitHub Actions behavior:
   `CI` 会执行 `cargo check`、`cargo clippy`、`cargo test`，并构建所有支持的平台目标。
 - `CD` triggers on `v*.*.*` tags, verifies tests again, builds platform binaries, publishes platform-specific npm packages, then publishes the main npm package.
   `CD` 在 `v*.*.*` 标签触发，重新执行测试，构建平台二进制，先发布平台 npm 包，再发布主 npm 包。
+- The GitHub Release body is generated from the repository script, so published notes follow the same structure as your local draft.
+  GitHub Release 正文现在由仓库内脚本生成，因此线上发布说明与本地草稿结构保持一致。
 - The workflow is versioned by semver tag, so npm will retain multiple released versions.
   工作流按语义化版本标签发布，因此 npm 会保留多个已发布版本。
 - The npm distribution is multi-platform, not multi-channel: it publishes one main package plus per-platform packages.
