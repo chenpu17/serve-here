@@ -23,7 +23,7 @@ npx playwright test e2e/webui.spec.js --reporter=line
 ./scripts/generate-release-notes.sh vX.Y.Z > /tmp/vX.Y.Z-release-notes.md
 ```
 
-4. Replace the `TODO` bullets with a short user-facing summary.
+4. Review the auto-generated highlights and adjust wording if needed.
 5. Use the generated markdown in GitHub Release notes, release announcements, or changelog posts.
 
 If you want the whole local release flow in one command, you can also run:
@@ -74,3 +74,4 @@ Released: YYYY-MM-DD
 - Prefer user-visible language over implementation details.
 - If a release only changes docs or pipeline internals, say that directly.
 - The GitHub Release workflow can publish notes from the generated markdown file instead of relying only on GitHub auto-generated notes.
+- The generator now auto-fills highlights from commit subjects, so most releases only need light editing instead of writing notes from scratch.
