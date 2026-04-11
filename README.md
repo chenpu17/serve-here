@@ -140,12 +140,7 @@ Tag-based release:
 基于标签的发布：
 
 ```sh
-./scripts/prepare-release.sh 2.0.3
-git add README.md src-rust/Cargo.toml src-rust/Cargo.lock npm/serve-here/package.json
-git commit -m "release: prepare v2.0.3"
-git tag v2.0.3
-git push origin main
-git push origin v2.0.3
+./scripts/release-all.sh 2.0.3
 ```
 
 Current GitHub Actions behavior:
@@ -175,3 +170,11 @@ For richer manual release notes, generate a draft locally:
 
 The draft format is documented in [docs/release-template.md](docs/release-template.md).
 草稿格式说明见 [docs/release-template.md](docs/release-template.md)。
+
+If you want one-command orchestration without pushing yet, use:
+如果你想先一条命令演练但暂不推送，可以用：
+
+```sh
+./scripts/release-all.sh 2.0.3 --no-push
+./scripts/release-all.sh 2.0.3 --dry-run
+```

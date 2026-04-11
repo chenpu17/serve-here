@@ -26,6 +26,12 @@ npx playwright test e2e/webui.spec.js --reporter=line
 4. Replace the `TODO` bullets with a short user-facing summary.
 5. Use the generated markdown in GitHub Release notes, release announcements, or changelog posts.
 
+If you want the whole local release flow in one command, you can also run:
+
+```sh
+./scripts/release-all.sh X.Y.Z --no-push
+```
+
 ## Suggested Structure
 
 ```md
