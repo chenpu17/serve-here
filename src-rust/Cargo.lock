@@ -1418,7 +1418,7 @@ dependencies = [
 
 [[package]]
 name = "serve-here"
-version = "2.0.1"
+version = "2.0.2"
 dependencies = [
  "axum",
  "chrono",
