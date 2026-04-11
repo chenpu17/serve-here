@@ -4,15 +4,27 @@ Use this template when you want more structured release notes than the default G
 
 ## Recommended Flow
 
-1. Prepare and validate the release locally.
-2. Generate a draft:
+1. Prepare the version update locally.
+
+```sh
+./scripts/prepare-release.sh X.Y.Z
+```
+
+2. Validate the release locally.
+
+```sh
+cargo test --locked --manifest-path src-rust/Cargo.toml
+npx playwright test e2e/webui.spec.js --reporter=line
+```
+
+3. Generate a draft:
 
 ```sh
 ./scripts/generate-release-notes.sh vX.Y.Z > /tmp/vX.Y.Z-release-notes.md
 ```
 
-3. Replace the `TODO` bullets with a short user-facing summary.
-4. Use the generated markdown in GitHub Release notes, release announcements, or changelog posts.
+4. Replace the `TODO` bullets with a short user-facing summary.
+5. Use the generated markdown in GitHub Release notes, release announcements, or changelog posts.
 
 ## Suggested Structure
 

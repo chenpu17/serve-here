@@ -140,8 +140,12 @@ Tag-based release:
 基于标签的发布：
 
 ```sh
-git tag v2.0.2
-git push origin v2.0.2
+./scripts/prepare-release.sh 2.0.3
+git add README.md src-rust/Cargo.toml src-rust/Cargo.lock npm/serve-here/package.json
+git commit -m "release: prepare v2.0.3"
+git tag v2.0.3
+git push origin main
+git push origin v2.0.3
 ```
 
 Current GitHub Actions behavior:
@@ -165,6 +169,7 @@ For richer manual release notes, generate a draft locally:
 如果需要更完整的手工版 release notes，可以先在本地生成草稿：
 
 ```sh
+./scripts/prepare-release.sh 2.0.3
 ./scripts/generate-release-notes.sh v2.0.3 > /tmp/v2.0.3-release-notes.md
 ```
 
